@@ -1,0 +1,6 @@
+C:\Users\msrowland\Documents\Visual Studio 2015\Projects\Sandbox\Sandbox.Learning\bin\Debug\Sandbox.Learning.exe.config
+C:\Users\msrowland\Documents\Visual Studio 2015\Projects\Sandbox\Sandbox.Learning\bin\Debug\Sandbox.Learning.exe
+C:\Users\msrowland\Documents\Visual Studio 2015\Projects\Sandbox\Sandbox.Learning\bin\Debug\Sandbox.Learning.pdb
+C:\Users\msrowland\Documents\Visual Studio 2015\Projects\Sandbox\Sandbox.Learning\obj\Debug\Sandbox.Learning.exe
+C:\Users\msrowland\Documents\Visual Studio 2015\Projects\Sandbox\Sandbox.Learning\obj\Debug\Sandbox.Learning.pdb
+C:\Users\msrowland\Documents\Visual Studio 2015\Projects\Sandbox\Sandbox.Learning\obj\Debug\Sandbox.Learning.csprojResolveAssemblyReference.cache
