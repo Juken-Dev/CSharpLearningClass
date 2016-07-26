@@ -47,182 +47,277 @@ namespace Sandbox.Learning
 
     public class Program
     {
-        #region Linq
-
-        private static readonly int[] Ints1 = { 1, 2, 3, 4, 5, 6 };
-        private static readonly int[] Ints2 = { 5, 6, 7, 8, 9, 10 };
+        #region Inheritance & Polymorphism Pt. 1
 
         static void Main()
         {
-            var context = new DataModel();
-
-            //JoinExample(context.People, context.Claims);
-            //CastExample(context.Cars);
-            //ConcatExample();
-            //UnionExample();
-            //IntersectExample();
-            //ExceptExample();
-            //ContainsExample();
-            //ZipExample();
-            //DefaultIfEmptyExample();
-            //DistinctExample();
-            //FirstExample(context.People);
-            //LastExample(context.People);
-            //SingleExample(context.People);
-            //GroupByExample(context);
-            //GroupJoinExample in Mapper.cs
-            //SelectExample(context);
-            ComputingExample(context);
-
-
-            Console.ReadKey(true);
+            
         }
 
-        private static void ComputingExample(DataModel context)
+        public class Person
         {
-            var result1 = Ints1.Sum();
-            var result2 = Ints1.Aggregate((x, y) => x * y);
-            var result3 = Ints1.Average();
-            var result4 = Ints1.Min();
-            var result5 = context.Claims.Min(x => x.Amount);
-            var result6 = context.Claims.Max(x => x.Amount);
-        }
+            protected DateTime _dateOfBirth;
 
-        private static void SelectExample(DataModel context)
-        {
-            var select1 = context.People.Select(x => x.FirstName).ToList();
-            var select2 = context.People.Select(x => x.Claims.Where(y => y.Amount > 100)).ToList();
-            var select3 = context.People.SelectMany(x => x.Claims.Where(y => y.Amount > 100)).ToList();
-            var select4 = context.People.Select(x => new { Name = $"{x.FirstName} {x.LastName}", ClaimsNums = x.Claims.Select(y => y.ClaimNumber) }).ToList();
+            public Person() { }
 
-            var select5 = (from person in context.People
-                          where person.Claims.Count > 2
-                          select person.FirstName).ToList();
-
-            var select6 = context.People.Where(x => x.Claims.Count > 2).Select(x => x.FirstName).ToList();
-        }
-
-        private static void ZipExample()
-        {
-            var result = Ints1.Zip(Ints2, (x, y) => x * y);
-        }
-
-        private static void UnionExample()
-        {
-            var result = Ints1.Union(Ints2);
-        }
-
-        private static void SingleExample(ICollection<Person> people)
-        {
-            people.Add(new Person { FirstName = "Steve" });
-
-            //var person1 = people.Single(x => x.FirstName == "Steve");
-            var person2 = people.SingleOrDefault(x => x.FirstName == "Matt");
-            //var person3 = people.Single(x => x.FirstName == "Matt");
-            var person4 = people.Single(x => x.FirstName == "Tony");
-        }
-
-
-        private static void JoinExample(ICollection<Person> people, ICollection<Claim> claims)
-        {
-            var results = people.Join(claims, p => p.PersonId, c => c.PersonId, (p, c) => new { Person = p, Claim = c });
-        }
-
-        private static void IntersectExample()
-        {
-            var result = Ints1.Intersect(Ints2);
-        }
-
-        private static void GroupByExample(DataModel context)
-        {
-            var groupedclaims = context.Claims.GroupBy(x => x.Person).ToList();
-
-            foreach (var groupedclaim in groupedclaims)
+            protected Person(string name)
             {
-                Console.WriteLine($"{groupedclaim.Key.FirstName} {groupedclaim.Key.LastName} Claims:");
-                foreach (var claim in groupedclaim)
-                {
-                    Console.WriteLine($"{claim.ClaimId} {claim.ClaimDate} {claim.Amount}");
-                }
-                Console.WriteLine();
+                Name = name;
+            }
+
+            public string Name { get; private set; }
+
+            public DateTime DateOfBirth
+            {
+                get { return _dateOfBirth; }
+                set { _dateOfBirth = value; }
+            }
+
+        }
+
+        public class Member : Person
+        {
+            public Member() { }
+
+            protected Member(string name) : base(name) { }
+
+            public DateTime EffectiveDate { get; set; }
+        }
+
+        public class PolicyHolder : Member
+        {
+            public PolicyHolder(string name, DateTime dateOfBirth)
+            {
+                // doesn't compile, inaccessable because _name is private to Person
+                //_name = name;
+
+                // compiles, accessable because _dateOfBirth is protected by Person so all it's child classes can access it.
+                _dateOfBirth = dateOfBirth;
+            }
+
+            public PolicyHolder(string name) : base(name) { }
+
+
+            public Dependent[] Dependents { get; set; }
+        }
+
+        public class Dependent : Member
+        {
+            public PolicyHolder PolicyHolder { get; set; }
+        }
+
+
+        public class Animal
+        {
+            public void Eat()
+            {
+                Console.WriteLine("Eating yummy food.");
             }
         }
 
-        private static void LastExample(ICollection<Person> people)
+        public interface IWingedAnimal
         {
-            var lastPerson = people.Last();
-
-            //FirstOrDefault
-            var nullPerson = people.LastOrDefault(x => x.FirstName == "Matthew");
-            var exceptionPerson = people.Last(x => x.FirstName == "Matthew");
+            void Fly();
         }
 
-        private static void FirstExample(ICollection<Person> people)
+        public interface IMammal
         {
-            var firstPerson = people.First();
-
-            //FirstOrDefault
-            var nullPerson = people.FirstOrDefault(x => x.FirstName == "Matthew");
-            var exceptionPerson = people.First(x => x.FirstName == "Matthew");
+            void Breath();
         }
 
-        private static void ExceptExample()
+        public class Bat : Animal, IWingedAnimal, IMammal
         {
-            var result = Ints1.Except(Ints2);
-        }
-
-        private static void CastExample(IEnumerable<Vehicle> vehicles)
-        {
-            var cars = vehicles.Cast<Car>();
-        }
-
-        private static void ConcatExample()
-        {
-            var result = Ints1.Concat(Ints2);
-        }
-
-        private static void ContainsExample()
-        {
-            var result1 = new[] { 1, 2, 3, 4, 5, 6 }.Contains(4);
-            var result2 = "Hi my name is Steve.".Contains("Steve");
-        }
-
-        private static void DefaultIfEmptyExample()
-        {
-            var list1 = new List<int>();
-
-            var list2 = list1.DefaultIfEmpty();
-
-            foreach (var i in list1)
+            public void Fly()
             {
-                Console.WriteLine(i);
+                Console.WriteLine("Bat is flying");
             }
 
-            Console.ReadKey(true);
-
-            foreach (var i in list2)
+            public void Breath()
             {
-                Console.WriteLine(i);
+                Console.WriteLine("Bat is breathing");
             }
         }
 
-        private static void DistinctExample()
-        {
-            var list1 = new[] { 1, 2, 3, 3, 3, 4, 5, 5, 6 };
-            var list2 = list1.Distinct();
 
-            Console.WriteLine("List1:");
-            foreach (var i in list1)
-            {
-                Console.WriteLine(i);
-            }
 
-            Console.WriteLine("List2:");
-            foreach (var i in list2)
-            {
-                Console.WriteLine(i);
-            }
-        }
+        #endregion
+
+        #region Linq
+
+        //private static readonly int[] Ints1 = { 1, 2, 3, 4, 5, 6 };
+        //private static readonly int[] Ints2 = { 5, 6, 7, 8, 9, 10 };
+
+        //static void Main()
+        //{
+        //    var context = new DataModel();
+
+        //    //JoinExample(context.People, context.Claims);
+        //    //CastExample(context.Cars);
+        //    //ConcatExample();
+        //    //UnionExample();
+        //    //IntersectExample();
+        //    //ExceptExample();
+        //    //ContainsExample();
+        //    //ZipExample();
+        //    //DefaultIfEmptyExample();
+        //    //DistinctExample();
+        //    //FirstExample(context.People);
+        //    //LastExample(context.People);
+        //    //SingleExample(context.People);
+        //    //GroupByExample(context);
+        //    //GroupJoinExample in Mapper.cs
+        //    //SelectExample(context);
+        //    ComputingExample(context);
+
+
+        //    Console.ReadKey(true);
+        //}
+
+        //private static void ComputingExample(DataModel context)
+        //{
+        //    var result1 = Ints1.Sum();
+        //    var result2 = Ints1.Aggregate((x, y) => x * y);
+        //    var result3 = Ints1.Average();
+        //    var result4 = Ints1.Min();
+        //    var result5 = context.Claims.Min(x => x.Amount);
+        //    var result6 = context.Claims.Max(x => x.Amount);
+        //}
+
+        //private static void SelectExample(DataModel context)
+        //{
+        //    var select1 = context.People.Select(x => x.FirstName).ToList();
+        //    var select2 = context.People.Select(x => x.Claims.Where(y => y.Amount > 100)).ToList();
+        //    var select3 = context.People.SelectMany(x => x.Claims.Where(y => y.Amount > 100)).ToList();
+        //    var select4 = context.People.Select(x => new { Name = $"{x.FirstName} {x.LastName}", ClaimsNums = x.Claims.Select(y => y.ClaimNumber) }).ToList();
+
+        //    var select5 = (from person in context.People
+        //                  where person.Claims.Count > 2
+        //                  select person.FirstName).ToList();
+
+        //    var select6 = context.People.Where(x => x.Claims.Count > 2).Select(x => x.FirstName).ToList();
+        //}
+
+        //private static void ZipExample()
+        //{
+        //    var result = Ints1.Zip(Ints2, (x, y) => x * y);
+        //}
+
+        //private static void UnionExample()
+        //{
+        //    var result = Ints1.Union(Ints2);
+        //}
+
+        //private static void SingleExample(ICollection<Person> people)
+        //{
+        //    people.Add(new Person { FirstName = "Steve" });
+
+        //    //var person1 = people.Single(x => x.FirstName == "Steve");
+        //    var person2 = people.SingleOrDefault(x => x.FirstName == "Matt");
+        //    //var person3 = people.Single(x => x.FirstName == "Matt");
+        //    var person4 = people.Single(x => x.FirstName == "Tony");
+        //}
+
+
+        //private static void JoinExample(ICollection<Person> people, ICollection<Claim> claims)
+        //{
+        //    var results = people.Join(claims, p => p.PersonId, c => c.PersonId, (p, c) => new { Person = p, Claim = c });
+        //}
+
+        //private static void IntersectExample()
+        //{
+        //    var result = Ints1.Intersect(Ints2);
+        //}
+
+        //private static void GroupByExample(DataModel context)
+        //{
+        //    var groupedclaims = context.Claims.GroupBy(x => x.Person).ToList();
+
+        //    foreach (var groupedclaim in groupedclaims)
+        //    {
+        //        Console.WriteLine($"{groupedclaim.Key.FirstName} {groupedclaim.Key.LastName} Claims:");
+        //        foreach (var claim in groupedclaim)
+        //        {
+        //            Console.WriteLine($"{claim.ClaimId} {claim.ClaimDate} {claim.Amount}");
+        //        }
+        //        Console.WriteLine();
+        //    }
+        //}
+
+        //private static void LastExample(ICollection<Person> people)
+        //{
+        //    var lastPerson = people.Last();
+
+        //    //FirstOrDefault
+        //    var nullPerson = people.LastOrDefault(x => x.FirstName == "Matthew");
+        //    var exceptionPerson = people.Last(x => x.FirstName == "Matthew");
+        //}
+
+        //private static void FirstExample(ICollection<Person> people)
+        //{
+        //    var firstPerson = people.First();
+
+        //    //FirstOrDefault
+        //    var nullPerson = people.FirstOrDefault(x => x.FirstName == "Matthew");
+        //    var exceptionPerson = people.First(x => x.FirstName == "Matthew");
+        //}
+
+        //private static void ExceptExample()
+        //{
+        //    var result = Ints1.Except(Ints2);
+        //}
+
+        //private static void CastExample(IEnumerable<Vehicle> vehicles)
+        //{
+        //    var cars = vehicles.Cast<Car>();
+        //}
+
+        //private static void ConcatExample()
+        //{
+        //    var result = Ints1.Concat(Ints2);
+        //}
+
+        //private static void ContainsExample()
+        //{
+        //    var result1 = new[] { 1, 2, 3, 4, 5, 6 }.Contains(4);
+        //    var result2 = "Hi my name is Steve.".Contains("Steve");
+        //}
+
+        //private static void DefaultIfEmptyExample()
+        //{
+        //    var list1 = new List<int>();
+
+        //    var list2 = list1.DefaultIfEmpty();
+
+        //    foreach (var i in list1)
+        //    {
+        //        Console.WriteLine(i);
+        //    }
+
+        //    Console.ReadKey(true);
+
+        //    foreach (var i in list2)
+        //    {
+        //        Console.WriteLine(i);
+        //    }
+        //}
+
+        //private static void DistinctExample()
+        //{
+        //    var list1 = new[] { 1, 2, 3, 3, 3, 4, 5, 5, 6 };
+        //    var list2 = list1.Distinct();
+
+        //    Console.WriteLine("List1:");
+        //    foreach (var i in list1)
+        //    {
+        //        Console.WriteLine(i);
+        //    }
+
+        //    Console.WriteLine("List2:");
+        //    foreach (var i in list2)
+        //    {
+        //        Console.WriteLine(i);
+        //    }
+        //}
 
         #endregion
 
