@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,12 +12,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Sandbox.Learning;
 using Sandbox.Learning.Entities;
+using Sandbox.Learning.Entities;
 
 namespace Sandbox.Learning
 {
     //using static System.Console; //C#6
 
-    #region Extention Methods and Operators Pt. 1
+    #region Extention Methods and Operators
 
     //public static class ExtentionMethods
     //{
@@ -44,101 +46,295 @@ namespace Sandbox.Learning
 
     #endregion
 
+    #region Inheritance & Polymorphism Pt. 2
+    using Vehicle = Program.Vehicle;
+
+    public static class VehicleExtensions
+    {
+        public static void DisplayMakeAndModel(this Vehicle vehicle)
+        {
+            Console.WriteLine($"Make: {vehicle.Make}");
+            Console.WriteLine($"Model: {vehicle.Model}");
+        }
+    }
+
+    #endregion
 
     public class Program
     {
-        #region Inheritance & Polymorphism Pt. 1
+        #region Inheritance & Polymorphism Pt. 2
 
         static void Main()
         {
-            
+            Accumulator a1 = new Accumulator { Amount = 110.50M };
+            Accumulator a2 = new Accumulator { Amount = 200.00M };
+
+            Accumulator a3 = a1 + a2;
+
+            bool b1 = a1 == a2;
+            bool b2 = a1 != a2;
+
+            //Vehicle vehicle = new Vehicle(); // does not compile because Vehicle is abtract
+            Vehicle vehicle = new Car();
+            vehicle.Drive();
+
+            vehicle = new Truck();
+            vehicle.Drive();
+
+
+            vehicle.Make = "Chevrolet";
+            vehicle.Model = "Silverado";
+            vehicle.DisplayMakeAndModel();
+
         }
+
+        public class Counter
+        {
+            private int _intCount;
+            private int _stringCount;
+            private int _dateCount;
+
+            void Count(int input)
+            {
+                _intCount++;
+            }
+
+            void Count(string input)
+            {
+                _stringCount++;
+            }
+
+            void Count(DateTime input)
+            {
+                _dateCount++;
+            }
+
+        }
+
+        public class Accumulator
+        {
+            public decimal Amount { get; set; }
+
+            public static Accumulator operator +(Accumulator a1, Accumulator a2)
+            {
+                return new Accumulator { Amount = a1.Amount + a2.Amount };
+            }
+
+            public static Accumulator operator -(Accumulator a1, Accumulator a2)
+            {
+                return new Accumulator { Amount = a1.Amount - a2.Amount };
+            }
+
+            public static bool operator ==(Accumulator a1, Accumulator a2)
+            {
+                return a1?.Amount == a2?.Amount;
+            }
+
+            public static bool operator !=(Accumulator a1, Accumulator a2)
+            {
+                return a1?.Amount != a2?.Amount;
+            }
+
+            public override bool Equals(object obj)
+            {
+                var item = obj as Accumulator;
+
+                return item != null && Amount.Equals(item.Amount);
+            }
+
+            public override int GetHashCode()
+            {
+                return Amount.GetHashCode();
+            }
+
+
+            public static void ApplyAccumulator(Accumulator accumulator)
+            {
+                if (accumulator is Deductible)
+                    ApplyAccumulator((Deductible)accumulator);
+                if (accumulator is OutOfPocket)
+                    ApplyAccumulator((OutOfPocket)accumulator);
+            }
+
+            public static void ApplyAccumulator(Deductible accumulator) { }
+            public static void ApplyAccumulator(OutOfPocket accumulator) { }
+        }
+
+        public class Deductible : Accumulator { }
+        public class OutOfPocket : Accumulator { }
 
         public class Person
         {
-            protected DateTime _dateOfBirth;
+            public string FirstName { get; set; }
 
-            public Person() { }
+            //public void set_FirstName(string value) { }
+            //public string get_FirstName() { }
 
-            protected Person(string name)
+            private string _lastName;
+            public string LastName { get { return _lastName; } set { _lastName = value; } }
+
+            private string _name;
+            public void set_name(string value)
             {
-                Name = name;
+                _name = value;
             }
 
-            public string Name { get; private set; }
-
-            public DateTime DateOfBirth
+            public string get_name()
             {
-                get { return _dateOfBirth; }
-                set { _dateOfBirth = value; }
-            }
-
-        }
-
-        public class Member : Person
-        {
-            public Member() { }
-
-            protected Member(string name) : base(name) { }
-
-            public DateTime EffectiveDate { get; set; }
-        }
-
-        public class PolicyHolder : Member
-        {
-            public PolicyHolder(string name, DateTime dateOfBirth)
-            {
-                // doesn't compile, inaccessable because _name is private to Person
-                //_name = name;
-
-                // compiles, accessable because _dateOfBirth is protected by Person so all it's child classes can access it.
-                _dateOfBirth = dateOfBirth;
-            }
-
-            public PolicyHolder(string name) : base(name) { }
-
-
-            public Dependent[] Dependents { get; set; }
-        }
-
-        public class Dependent : Member
-        {
-            public PolicyHolder PolicyHolder { get; set; }
-        }
-
-
-        public class Animal
-        {
-            public void Eat()
-            {
-                Console.WriteLine("Eating yummy food.");
+                return _name;
             }
         }
 
-        public interface IWingedAnimal
+        public abstract class Vehicle
         {
-            void Fly();
-        }
+            public string Make { get; set; }
+            public string Model { get; set; }
 
-        public interface IMammal
-        {
-            void Breath();
-        }
-
-        public class Bat : Animal, IWingedAnimal, IMammal
-        {
-            public void Fly()
+            public virtual void Drive()
             {
-                Console.WriteLine("Bat is flying");
+                Console.WriteLine($"The {nameof(Vehicle)} is driving.");
             }
 
-            public void Breath()
+            public abstract void DoMaintenance();
+        }
+
+        public class Car : Vehicle
+        {
+            public override void Drive()
             {
-                Console.WriteLine("Bat is breathing");
+                // provide new logic
+                Console.WriteLine($"The {nameof(Car)} is driving.");
+            }
+
+            public override void DoMaintenance()
+            {
+                Console.WriteLine($"{nameof(Car)} is being maintenanced");
             }
         }
 
+        public sealed class Truck : Vehicle
+        {
+            public override void Drive()
+            {
+                // extend the current logic
+                base.Drive();
+                Console.WriteLine($"The Vehicle is a {nameof(Truck)}.");
+            }
 
+            public override void DoMaintenance()
+            {
+                Console.WriteLine($"{nameof(Truck)} is being maintenanced");
+            }
+        }
+
+        //public class HalfTon : Truck { } // does not compile because Truck is sealed
+
+
+
+        #endregion
+
+        #region Inheritance & Polymorphism Pt. 1
+
+        //static void Main()
+        //{
+        //    IWingedAnimal animal = new Bat();
+        //    IWingedAnimal animal2 = new Bird();
+
+
+        //    animal.Fly();
+        //}
+
+        //public class Person
+        //{
+        //    protected DateTime _dateOfBirth;
+
+        //    public Person() { }
+
+        //    public string Name { get; private set; }
+
+        //    protected Person(string name)
+        //    {
+        //        Name = name;
+        //    }
+
+        //    public DateTime DateOfBirth
+        //    {
+        //        get { return _dateOfBirth; }
+        //        set { _dateOfBirth = value; }
+        //    }
+
+        //}
+
+        //public class Member : Person
+        //{
+        //    public Member() { }
+
+        //    protected Member(string name) : base(name) { }
+
+        //    public DateTime EffectiveDate { get; set; }
+        //}
+
+        //public class PolicyHolder : Member
+        //{
+        //    public PolicyHolder(string name, DateTime dateOfBirth)
+        //    {
+        //        // doesn't compile, inaccessable because _name is private to Person
+        //        //_name = name;
+
+        //        // compiles, accessable because _dateOfBirth is protected by Person so all it's child classes can access it.
+        //        _dateOfBirth = dateOfBirth;
+        //    }
+
+        //    public PolicyHolder(string name) : base(name) { }
+
+
+        //    public Dependent[] Dependents { get; set; }
+        //}
+
+        //public class Dependent : Member
+        //{
+        //    public PolicyHolder PolicyHolder { get; set; }
+        //}
+
+
+        //public class Animal
+        //{
+        //    public void Eat()
+        //    {
+        //        Console.WriteLine("Eating yummy food.");
+        //    }
+        //}
+
+        //public interface IWingedAnimal
+        //{
+        //    void Fly();
+        //}
+
+        //public interface IMammal
+        //{
+        //    void Breath();
+        //}
+
+        //public class Bat : Animal, IWingedAnimal, IMammal
+        //{
+        //    public void Fly()
+        //    {
+        //        Console.WriteLine("Bat is flying");
+        //    }
+
+        //    public void Breath()
+        //    {
+        //        Console.WriteLine("Bat is breathing");
+        //    }
+        //}
+
+        //public class Bird : Animal, IWingedAnimal
+        //{
+        //    public void Fly()
+        //    {
+        //        Console.WriteLine("Bird is flying");
+        //    }
+        //}
 
         #endregion
 
@@ -396,7 +592,7 @@ namespace Sandbox.Learning
 
         #endregion
 
-        #region Extention Methods and Operators Pt. 2
+        #region Extention Methods and Operators
 
         //public static void Main()
         //{
